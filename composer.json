@@ -1,0 +1,12 @@
+{
+    "name": "budsies/magento1-vsbridge",
+    "description": "Vue Storefront bridge - Extension for Magento 1.x",
+    "type": "magento-module",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "d.kochnov",
+            "email": "d.kochnov.optimus@gmail.com"
+        }
+    ]
+}
