@@ -1,5 +1,5 @@
 {
-    "name": "BudsiesApp/magento1-vsbridge",
+    "name": "budsies/magento1-vsbridge",
     "description": "Vue Storefront bridge - Extension for Magento 1.x",
     "type": "magento-module",
     "version": "1.0.0",
