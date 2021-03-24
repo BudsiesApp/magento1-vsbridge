@@ -403,8 +403,7 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
             }
 
             try {
-                $groupedRates = $quoteShippingAddress->setCollectShippingRates(true)->collectShippingRates()
-                    ->getGroupedAllShippingRates();
+                $groupedRates = $quoteShippingAddress->collectTotals()->getGroupedAllShippingRates();
                 $ratesResult = [];
 
                 foreach ($groupedRates as $carrierCode => $rates) {
