@@ -141,8 +141,7 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
         $currentQuoteItems = $this->quote->getAllVisibleItems();
 
         foreach ($clientItems as $product) {
-            $sku = $product->sku;
-            $serverItem = $this->findProductInQuote($sku, $currentQuoteItems);
+            $serverItem = $this->findProductInQuote($product->id, $currentQuoteItems);
 
             if ($serverItem) {
                 if ($product->qty !== $serverItem->getQty()) {
@@ -168,7 +167,8 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
         }
 
         foreach ($currentQuoteItems as $item) {
-            $clientItem = $this->findProductInRequest($item->getData('sku'), $clientItems);
+            $itemProductId = (int)$item->getData('product_id');
+            $clientItem = $this->findProductInRequest($itemProductId, $clientItems);
 
             if (null === $clientItem) {
                 $this->quote->deleteItem($item);
@@ -187,15 +187,16 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
     }
 
     /**
-     * @param $sku
+     * @param $productId
      * @param $items
      *
      * @return Mage_Sales_Model_Quote_Item|null
      */
-    private function findProductInQuote($sku, $items)
+    private function findProductInQuote($productId, $items)
     {
         foreach ($items as $item) {
-            if ($item->getData('sku') === $sku) {
+            $itemProductId = (int)$item->getData('product_id');
+            if ($itemProductId === $productId) {
                 return $item;
             }
         }
@@ -203,10 +204,10 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
         return null;
     }
 
-    private function findProductInRequest($cartItemSku, $products)
+    private function findProductInRequest($cartItemProductId, $products)
     {
         foreach ($products as $product) {
-            if ($product->sku === $cartItemSku) {
+            if ($product->id === $cartItemProductId) {
                 return $product;
             }
         }
