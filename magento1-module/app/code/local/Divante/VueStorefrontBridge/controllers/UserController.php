@@ -390,7 +390,8 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
     }
 
 
-    public function meAction(){
+    public function meAction()
+    {
         $customer = $this->_currentCustomer($this->getRequest());
         if(!$customer) {
             return $this->_result(500, 'User is not authroized to access self');
@@ -450,7 +451,7 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                         }
                     }
                 }
-                $customer->load($customer->getId());
+                $customer = Mage::getModel('customer/customer')->load($customer->getId());
                 $customerDTO = $customer->getData();
                 $subscription = Mage::getModel('newsletter/subscriber')->loadByCustomer($customer);
                 $customerDTO['is_subscribed'] = $subscription->isSubscribed();
