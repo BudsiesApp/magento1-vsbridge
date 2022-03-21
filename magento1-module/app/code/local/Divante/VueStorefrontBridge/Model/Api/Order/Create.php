@@ -9,12 +9,6 @@
  */
 class Divante_VueStorefrontBridge_Model_Api_Order_Create
 {
-
-    /**
-     * @var Divante_VueStorefrontBridge_Model_Api_Cart
-     */
-    private $cartModel;
-
     /**
      * @var Mage_Sales_Model_Quote
      */
@@ -34,7 +28,6 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
     {
         $this->quote     = $payload[0];
         $this->customer  = $payload[1];
-        $this->cartModel = Mage::getSingleton('vsbridge/api_cart');
     }
 
     /**
@@ -50,7 +43,7 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
             Mage::throwException('No quote entity passed to order create model');
         }
 
-        $this->checkAndAddProducts($requestPayload);
+        $this->checkProducts($requestPayload);
 
         $billingAddress = (array)$requestPayload->addressInformation->billingAddress;
         $shippingAddress = (array)$requestPayload->addressInformation->shippingAddress;
@@ -135,68 +128,38 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
     /**
      * @param $requestPayload
      */
-    private function checkAndAddProducts($requestPayload)
+    private function checkProducts($requestPayload)
     {
         $clientItems = $requestPayload->products;
         $currentQuoteItems = $this->quote->getAllVisibleItems();
 
-        foreach ($clientItems as $product) {
-            $serverItem = $this->findProductInQuote($product->id, $currentQuoteItems);
+        foreach ($clientItems as $clientItem) {
+            $serverItem = $this->findProductInQuote($clientItem, $currentQuoteItems);
 
-            if ($serverItem) {
-                if ($product->qty !== $serverItem->getQty()) {
-                    $serverItem->setQty($product->qty);
-                }
-            } else {
-                $cartItem = new stdClass();
-
-                if (isset($product->product_option)) {
-                    $cartItem->product_option = $product->product_option;
-                }
-
-                if (isset($product->qty)) {
-                    $cartItem->qty = max($product->qty, 1);
-                } else {
-                    $cartItem->qty = 1;
-                }
-
-                $cartItem->sku = $product->sku;
-
-                $this->addProductToQuote($cartItem);
+            if (!$serverItem) {
+                throw new DomainException('Fail to find product from order request in quote');
             }
         }
 
-        foreach ($currentQuoteItems as $item) {
-            $itemProductId = (int)$item->getData('product_id');
-            $clientItem = $this->findProductInRequest($itemProductId, $clientItems);
+        foreach ($currentQuoteItems as $currentQuoteItem) {
+            $clientItem = $this->findProductInRequest($currentQuoteItem, $clientItems);
 
             if (null === $clientItem) {
-                $this->quote->deleteItem($item);
+                $this->quote->deleteItem($currentQuoteItem);
             }
         }
     }
 
     /**
-     * @param stdClass $cartItem
-     */
-    private function addProductToQuote(stdClass $cartItem)
-    {
-        $params = $this->cartModel->prepareParams($cartItem);
-        $product = $this->cartModel->getProduct($cartItem->sku);
-        $this->quote->addProduct($product, new Varien_Object($params));
-    }
-
-    /**
-     * @param $productId
-     * @param $items
+     * @param object $clientItem
+     * @param Mage_Sales_Model_Quote_Item[] $quoteItems
      *
      * @return Mage_Sales_Model_Quote_Item|null
      */
-    private function findProductInQuote($productId, $items)
+    private function findProductInQuote($clientItem, $quoteItems)
     {
-        foreach ($items as $item) {
-            $itemProductId = (int)$item->getData('product_id');
-            if ($itemProductId === $productId) {
+        foreach ($quoteItems as $item) {
+            if ((int)$item->getId() === (int)$clientItem->server_item_id) {
                 return $item;
             }
         }
@@ -204,11 +167,17 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
         return null;
     }
 
-    private function findProductInRequest($cartItemProductId, $products)
+    /**
+     * @param Mage_Sales_Model_Quote_Item $quoteItem
+     * @param object[] $clientItems
+     *
+     * @return object|null
+     */
+    private function findProductInRequest($quoteItem, $clientItems)
     {
-        foreach ($products as $product) {
-            if ($product->id === $cartItemProductId) {
-                return $product;
+        foreach ($clientItems as $item) {
+            if ((int)$item->server_item_id === (int)$quoteItem->getId()) {
+                return $item;
             }
         }
 
