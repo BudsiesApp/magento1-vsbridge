@@ -14,7 +14,7 @@ class Divante_VueStorefrontBridge_Model_Api_Request
     /**
      * @var Mage_Sales_Model_Quote
      */
-    private $quote = null;
+    protected $quote = null;
 
     /**
      * @var String
@@ -66,7 +66,7 @@ class Divante_VueStorefrontBridge_Model_Api_Request
      *
      * @return bool
      */
-    private function checkQuotePerms(Mage_Sales_Model_Quote $quoteObj, $customer)
+    protected function checkQuotePerms(Mage_Sales_Model_Quote $quoteObj, $customer)
     {
         $quoteCustomer = $quoteObj->getCustomer();
 
@@ -105,7 +105,7 @@ class Divante_VueStorefrontBridge_Model_Api_Request
     /**
      * @return string
      */
-    private function getSecretKey()
+    protected function getSecretKey()
     {
         return $this->configSettings->getSecretKey();
     }
