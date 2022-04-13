@@ -72,14 +72,11 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
             $shippingAddressData->setCompany(null);
         }
 
-        $paymentMethodAdditional = (array)$requestPayload->addressInformation->payment_method_additional;
-
         $shippingAddressData->implodeStreetAddress();
         $shippingMethodCode = $requestPayload->addressInformation->shipping_method_code;
-        $paymentMethodCode = $paymentMethodAdditional['budsies_payment_method_code'] ??
-            $requestPayload->addressInformation->payment_method_code;
+        $paymentMethodCode = $requestPayload->addressInformation->payment_method_code;
         $shippingMethodCarrier = $requestPayload->addressInformation->shipping_carrier_code;
-        $shippingMethod = $shippingMethodCarrier . '_' . $shippingMethodCode;
+        $shippingMethod = $shippingMethodCarrier  . '_' . $shippingMethodCode;
 
         // Collect shipping rates on quote shipping address data
         $shippingAddressData->setCollectShippingRates(true)
@@ -87,14 +84,12 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
         // Set shipping and payment method on quote shipping address data
         $shippingAddressData->setShippingMethod($shippingMethod)->setPaymentMethod($paymentMethodCode);
 
-        $paymentData = array_merge(
+        $this->quote->getPayment()->importData(
             [
                 'method' => $paymentMethodCode,
-            ],
-            $paymentMethodAdditional
+                'additional_information' => (array)$requestPayload->addressInformation->payment_method_additional,
+            ]
         );
-
-        $this->quote->getPayment()->importData($paymentData);
 
         $this->quote->getShippingAddress()->setCollectShippingRates(true);
         $this->quote->collectTotals();
