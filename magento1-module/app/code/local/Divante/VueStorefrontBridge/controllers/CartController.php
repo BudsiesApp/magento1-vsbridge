@@ -274,7 +274,7 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
      */
     protected function _canUsePaymentMethod($method, $quote)
     {
-        if (!($method->isGateway() || $method->canUseInternal())) {
+        if (!$this->isPaymentMethodAvailable($method)) {
             return false;
         }
 
@@ -294,6 +294,19 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
         $maxTotal = $method->getConfigData('max_order_total');
 
         if ((!empty($minTotal) && ($total < $minTotal)) || (!empty($maxTotal) && ($total > $maxTotal))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function isPaymentMethodAvailable(Mage_Payment_Model_Method_Abstract $method): bool
+    {
+        if ($method->getCode() === 'gene_braintree_applepay') {
+            return true;
+        }
+
+        if (!($method->isGateway() || $method->canUseInternal())) {
             return false;
         }
 
