@@ -306,7 +306,7 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
             return true;
         }
 
-        return !($method->isGateway() || $method->canUseInternal());
+        return $method->isGateway() || $method->canUseInternal();
     }
 
     /**
