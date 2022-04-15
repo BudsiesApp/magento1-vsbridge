@@ -12,7 +12,7 @@ class Divante_VueStorefrontBridge_Model_Api_Request
 {
 
     /**
-     * @var Mage_Sales_Model_Quote
+     * @var Mage_Sales_Model_Quote|null
      */
     protected $quote = null;
 
