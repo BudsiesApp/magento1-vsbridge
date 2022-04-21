@@ -272,7 +272,7 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
      * @return bool
      * @throws Mage_Core_Model_Store_Exception
      */
-    protected function _canUsePaymentMethod($method, $quote)
+    public function _canUsePaymentMethod($method, $quote)
     {
         if (!$this->isPaymentMethodAvailable($method)) {
             return false;
