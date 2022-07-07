@@ -326,7 +326,7 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
 
             $quoteObj = $this->requestModel->currentQuote($this->getRequest());
             $store = $quoteObj->getStoreId();
-            $total = $quoteObj->getBaseSubtotal();
+            $total = $quoteObj->getBaseGrandTotal();
             $methodsResult = [];
             $methods = Mage::helper('payment')->getStoreMethods($store, $quoteObj);
 
