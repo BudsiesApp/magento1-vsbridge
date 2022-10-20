@@ -17,7 +17,7 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
     /**
      * @var array
      */
-    private $addressBlackList = [
+    protected $addressBlackList = [
         'attribute_set_id',
         'entity_type_id',
         'is_default_billing',
@@ -31,17 +31,17 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
     /**
      * @var Divante_VueStorefrontBridge_Model_Api_Customer_Address
      */
-    private $addressModel;
+    protected $addressModel;
 
     /**
      * @var Divante_VueStorefrontBridge_Model_Api_Request
      */
-    private $requestModel;
+    protected $requestModel;
 
     /**
      * @var Mage_Customer_Helper_Data
      */
-    private $helper;
+    protected $helper;
 
     /**
      * Divante_VueStorefrontBridge_AddressController constructor.
@@ -225,7 +225,7 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
      *
      * @return array
      */
-    private function prepareAddress(Mage_Customer_Model_Address $address, Mage_Customer_Model_Customer $customer)
+    protected function prepareAddress(Mage_Customer_Model_Address $address, Mage_Customer_Model_Customer $customer)
     {
         $addressDTO = $this->addressModel->prepareAddress($address, $customer);
 
