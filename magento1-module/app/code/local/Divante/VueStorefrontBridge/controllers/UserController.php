@@ -502,9 +502,10 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                         $addressDTO['default_shipping'] = true;
                         $customerDTO['default_shipping'] = $address->getId();
                     }
+
+                    $customerDTO['addresses'][] = $addressDTO;
                 }
 
-                $customerDTO['addresses'][] = $addressDTO;
                 $customerDTO['id'] = $customerDTO['entity_id'];
 
                 $filteredCustomerData = $this->_filterDTO($customerDTO, array('password', 'password_hash', 'password_confirmation', 'confirmation', 'entity_type_id'));
