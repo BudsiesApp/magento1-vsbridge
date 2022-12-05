@@ -497,7 +497,9 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                         // its customer default billing address
                         $addressDTO['default_billing'] = true;
                         $customerDTO['default_billing'] = $address->getId();
-                    } else if($defaultShipping == $address->getId()|| $address->getId() == $updatedShippingId) {
+                    } 
+                    
+                    if($defaultShipping == $address->getId()|| $address->getId() == $updatedShippingId) {
                         // its customer default shipping address
                         $addressDTO['default_shipping'] = true;
                         $customerDTO['default_shipping'] = $address->getId();
