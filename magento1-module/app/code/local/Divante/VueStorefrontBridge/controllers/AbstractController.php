@@ -52,9 +52,10 @@ class Divante_VueStorefrontBridge_AbstractController extends Mage_Core_Controlle
      */
     public function init()
     {
-        $this->getResponse()->setHeader('Content-Type', 'application/json');
-        $this->getResponse()->setHeader('Access-Control-Allow-Origin', '*');
-        $this->getResponse()->setHeader('Access-Control-Expose-Headers', 'Link');
+        $this->getResponse()
+            ->setHeader('Content-Type', 'application/json', true)
+            ->setHeader('Access-Control-Allow-Origin', '*', true)
+            ->setHeader('Access-Control-Expose-Headers', 'Link', true);
     }
 
     /**
@@ -254,17 +255,17 @@ class Divante_VueStorefrontBridge_AbstractController extends Mage_Core_Controlle
     protected function _result($code, $result)
     {
         $this->getResponse()->setBody(
-            json_encode(
-                [
-                    'code'   => $code,
-                    'result' => $result,
-                ],
-                JSON_NUMERIC_CHECK
+                json_encode(
+                    [
+                        'code'   => $code,
+                        'result' => $result,
+                    ],
+                    JSON_NUMERIC_CHECK
+                )
             )
-        )
             ->setHttpResponseCode($code)
-            ->setHeader('Content-Type', 'application/json')
-            ->setHeader('Cache-Control', 'no-cache');
+            ->setHeader('Content-Type', 'application/json', true)
+            ->setHeader('Cache-Control', 'no-cache', true);
     }
 
     /**
