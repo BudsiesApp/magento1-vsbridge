@@ -53,10 +53,9 @@ class Divante_VueStorefrontBridge_AbstractController extends Mage_Core_Controlle
     public function init()
     {
         $this->getResponse()
-            ->clearHeaders()
-            ->setHeader('Content-Type', 'application/json')
-            ->setHeader('Access-Control-Allow-Origin', '*')
-            ->setHeader('Access-Control-Expose-Headers', 'Link');
+            ->setHeader('Content-Type', 'application/json', true)
+            ->setHeader('Access-Control-Allow-Origin', '*', true)
+            ->setHeader('Access-Control-Expose-Headers', 'Link', true);
     }
 
     /**
