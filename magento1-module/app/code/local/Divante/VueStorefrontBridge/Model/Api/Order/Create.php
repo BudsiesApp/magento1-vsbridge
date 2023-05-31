@@ -45,9 +45,6 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
 
         $this->checkProducts($requestPayload);
 
-        $billingAddress = (array)$requestPayload->addressInformation->billingAddress;
-        $shippingAddress = (array)$requestPayload->addressInformation->shippingAddress;
-
         // Assign customer if exists
         if (!$this->customer) {
             $this->quote->setCustomerIsGuest(true);
@@ -55,6 +52,8 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
             $this->quote->setCustomerIsGuest(false);
             $this->quote->assignCustomer($this->customer);
         }
+
+        $billingAddress = (array)$requestPayload->addressInformation->billingAddress;
 
         // Add billing address to quote
         /** @var Mage_Sales_Model_Quote_Address $billingAddressData */
@@ -64,25 +63,30 @@ class Divante_VueStorefrontBridge_Model_Api_Order_Create
         $this->quote->setCustomerFirstname($billingAddressData->getFirstname());
         $this->quote->setCustomerLastname($billingAddressData->getLastname());
 
-        // Add shipping address to quote
-        $shippingAddressData = $this->quote->getShippingAddress()->addData($shippingAddress);
-
-        // NA eq to company not defined
-        if ($shippingAddress['company'] == 'NA') {
-            $shippingAddressData->setCompany(null);
-        }
-
-        $shippingAddressData->implodeStreetAddress();
-        $shippingMethodCode = $requestPayload->addressInformation->shipping_method_code;
         $paymentMethodCode = $requestPayload->addressInformation->payment_method_code;
-        $shippingMethodCarrier = $requestPayload->addressInformation->shipping_carrier_code;
-        $shippingMethod = $shippingMethodCarrier  . '_' . $shippingMethodCode;
+        
+        if (!$this->quote->isVirtual()) {
+            $shippingAddress = (array)$requestPayload->addressInformation->shippingAddress;
 
-        // Collect shipping rates on quote shipping address data
-        $shippingAddressData->setCollectShippingRates(true)
-            ->collectShippingRates();
-        // Set shipping and payment method on quote shipping address data
-        $shippingAddressData->setShippingMethod($shippingMethod)->setPaymentMethod($paymentMethodCode);
+            // Add shipping address to quote
+            $shippingAddressData = $this->quote->getShippingAddress()->addData($shippingAddress);
+    
+            // NA eq to company not defined
+            if ($shippingAddress['company'] == 'NA') {
+                $shippingAddressData->setCompany(null);
+            }
+    
+            $shippingAddressData->implodeStreetAddress();
+            $shippingMethodCode = $requestPayload->addressInformation->shipping_method_code;
+            $shippingMethodCarrier = $requestPayload->addressInformation->shipping_carrier_code;
+            $shippingMethod = $shippingMethodCarrier  . '_' . $shippingMethodCode;
+    
+            // Collect shipping rates on quote shipping address data
+            $shippingAddressData->setCollectShippingRates(true)
+                ->collectShippingRates();
+            // Set shipping and payment method on quote shipping address data
+            $shippingAddressData->setShippingMethod($shippingMethod)->setPaymentMethod($paymentMethodCode);
+        }
 
         $this->quote->getPayment()->importData(
             [
