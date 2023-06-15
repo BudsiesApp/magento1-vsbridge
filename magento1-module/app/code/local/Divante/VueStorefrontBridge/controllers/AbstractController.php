@@ -61,8 +61,12 @@ class Divante_VueStorefrontBridge_AbstractController extends Mage_Core_Controlle
     /**
      * @inheritdoc
      */
-    public function preDispatch() {
-        if($this->getRequest()->getMethod() === 'OPTIONS'){
+    public function preDispatch() 
+    {
+        // Disable error displaying to prevent wrong response code on PHP error
+        ini_set('display_errors', '0');
+
+        if ($this->getRequest()->getMethod() === 'OPTIONS') {
             $this->getResponse()->setBody(json_encode(true))->setHeader('Access-Control-Allow-Origin', '*')
                 ->setHeader('Access-Control-Allow-Headers', 'Content-Type')
                 ->setHeader('Access-Control-Expose-Headers', 'Link')->sendResponse();
