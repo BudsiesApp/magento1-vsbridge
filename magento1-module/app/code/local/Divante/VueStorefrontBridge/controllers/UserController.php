@@ -478,18 +478,24 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                         $streetDTO[]='';
 
                     $addressDTO['street'] = $streetDTO;
-                    if(!$addressDTO['firstname'])
+                    if(empty($addressDTO['firstname'])) {
                         $addressDTO['firstname'] = $customerDTO['firstname'];
-                    if(!$addressDTO['lastname'])
+                    }
+                    if(empty($addressDTO['lastname'])) {
                         $addressDTO['lastname'] = $customerDTO['lastname'];
-                    if(!$addressDTO['city'])
+                    }
+                    if(empty($addressDTO['city'])) {
                         $addressDTO['city'] = '';
-                    if(!$addressDTO['country_id'])
+                    }
+                    if(empty($addressDTO['country_id'])) {
                         $addressDTO['country_id'] = 'US';
-                    if(!$addressDTO['postcode'])
+                    }
+                    if(empty($addressDTO['postcode'])) {
                         $addressDTO['postcode'] = '';
-                    if(!$addressDTO['telephone'])
+                    }
+                    if(empty($addressDTO['telephone'])) {
                         $addressDTO['telephone'] = '';
+                    }
 
                     if($defaultBilling == $address->getId() || $address->getId() == $updatedBillingId) {
                         // TODO: Street + Region fields (region_code should be)
