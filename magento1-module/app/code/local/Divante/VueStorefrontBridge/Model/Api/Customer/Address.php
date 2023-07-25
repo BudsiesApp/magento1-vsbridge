@@ -54,8 +54,10 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
         $addressData['customer_id'] = $customer->getId();
         $address->addData($addressData);
 
+        $address->setRegion($addressData['region']['region']);
+
         $addressRegion = Mage::getModel('directory/region')
-            ->loadByCode($addressData['region'], $addressData['country_id']);
+            ->loadByCode($addressData['region']['region'], $addressData['country_id']);
         
         if ($addressRegion->getData()) {
             $address->setRegionId((int)$addressRegion->getId());
