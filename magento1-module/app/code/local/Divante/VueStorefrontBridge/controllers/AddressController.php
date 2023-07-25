@@ -13,21 +13,6 @@ require_once(__DIR__.'/../helpers/JWT.php');
  */
 class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefrontBridge_AbstractController
 {
-
-    /**
-     * @var array
-     */
-    protected $addressBlackList = [
-        'attribute_set_id',
-        'entity_type_id',
-        'is_default_billing',
-        'is_default_shipping',
-        'entity_id',
-        'customer_id',
-        'created_at',
-        'updated_at',
-    ];
-
     /**
      * @var Divante_VueStorefrontBridge_Model_Api_Customer_Address
      */
@@ -229,6 +214,6 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
     {
         $addressDTO = $this->addressModel->prepareAddress($address, $customer);
 
-        return $this->_filterDTO($addressDTO, $this->addressBlackList);
+        return $this->_filterDTO($addressDTO, $this->addressModel->getFieldsBlacklist());
     }
 }

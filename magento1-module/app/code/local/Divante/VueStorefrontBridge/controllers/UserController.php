@@ -4,6 +4,18 @@ require_once(__DIR__.'/../helpers/JWT.php');
 
 class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBridge_AbstractController
 {
+    protected Divante_VueStorefrontBridge_Model_Api_Customer_Address $addressModel;
+
+    public function __construct(
+        Zend_Controller_Request_Abstract $request,
+        Zend_Controller_Response_Abstract $response,
+        array $invokeArgs = []
+    ) {
+        parent::__construct($request, $response, $invokeArgs);
+
+        $this->addressModel = Mage::getSingleton('vsbridge/api_customer_address');
+    }
+
     /**
      * Login the customer and return API access token
      * https://github.com/DivanteLtd/magento1-vsbridge/blob/master/doc/VueStorefrontBridge%20API%20specs.md#post-vsbridgeuserlogin
@@ -462,40 +474,7 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                 $customerDTO['addresses'] = array();
 
                 foreach ($allAddress as $address) {
-                    $addressDTO = $address->getData();
-                    $addressDTO['id'] = $addressDTO['entity_id'];
-
-                    $region = null;
-
-                    if (isset($addressDTO['region'])) {
-                        $region = $addressDTO['region'];
-                    }
-
-                    $addressDTO['region'] = ['region' => $region];
-
-                    $streetDTO = explode("\n", $addressDTO['street']);
-                    if(count($streetDTO) < 2)
-                        $streetDTO[]='';
-
-                    $addressDTO['street'] = $streetDTO;
-                    if(empty($addressDTO['firstname'])) {
-                        $addressDTO['firstname'] = $customerDTO['firstname'];
-                    }
-                    if(empty($addressDTO['lastname'])) {
-                        $addressDTO['lastname'] = $customerDTO['lastname'];
-                    }
-                    if(empty($addressDTO['city'])) {
-                        $addressDTO['city'] = '';
-                    }
-                    if(empty($addressDTO['country_id'])) {
-                        $addressDTO['country_id'] = 'US';
-                    }
-                    if(empty($addressDTO['postcode'])) {
-                        $addressDTO['postcode'] = '';
-                    }
-                    if(empty($addressDTO['telephone'])) {
-                        $addressDTO['telephone'] = '';
-                    }
+                    $addressDTO = $this->addressModel->prepareAddress($address, $customer);
 
                     if($defaultBilling == $address->getId() || $address->getId() == $updatedBillingId) {
                         // TODO: Street + Region fields (region_code should be)
@@ -511,7 +490,7 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                         $customerDTO['default_shipping'] = $address->getId();
                     }
 
-                    $customerDTO['addresses'][] = $addressDTO;
+                    $customerDTO['addresses'][] = $this->_filterDTO($addressDTO, $this->addressModel->getFieldsBlacklist());
                 }
 
                 $customerDTO['id'] = $customerDTO['entity_id'];
