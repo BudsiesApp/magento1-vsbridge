@@ -44,6 +44,13 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
         $addressData['customer_id'] = $customer->getId();
         $address->addData($addressData);
 
+        $addressRegion = Mage::getModel('directory/region')
+            ->loadByCode($addressData['region'], $addressData['country_id']);
+        
+        if ($addressRegion->getData()) {
+            $address->setRegionId((int)$addressRegion->getId());
+        }
+
         if (isset($addressData['default_billing']) && ($addressData['default_billing'] === true)) {
             $address->setIsDefaultBilling(true);
         } else {
