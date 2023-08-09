@@ -10,6 +10,16 @@
  */
 class Divante_VueStorefrontBridge_Model_Api_Customer_Address
 {
+    protected array $fieldsBlacklist = [
+        'attribute_set_id',
+        'entity_type_id',
+        'is_default_billing',
+        'is_default_shipping',
+        'entity_id',
+        'customer_id',
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * @param $addressData
@@ -43,6 +53,16 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
         $addressData['parent_id'] = $customer->getId();
         $addressData['customer_id'] = $customer->getId();
         $address->addData($addressData);
+
+        $address->setRegion($addressData['region']['region']);
+
+        $addressRegion = Mage::getModel('directory/region')
+            ->loadByCode($addressData['region']['region'], $addressData['country_id']);
+        
+        if ($addressRegion->getData()) {
+            $address->setRegionId((int)$addressRegion->getId());
+            $address->setRegion($addressRegion->getDefaultName());
+        }
 
         if (isset($addressData['default_billing']) && ($addressData['default_billing'] === true)) {
             $address->setIsDefaultBilling(true);
@@ -94,42 +114,42 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
     {
         $addressDTO = $address->getData();
         $addressDTO['id'] = $addressDTO['entity_id'];
-        $region = null;
 
-        if (isset($addressDTO['region'])) {
+        $region = null;
+        if (isset($addressDTO['region_id'])) {
+            $region = Mage::getModel('directory/region')->load($addressDTO['region_id'])->getCode();
+        } elseif (isset($addressDTO['region'])) {
             $region = $addressDTO['region'];
         }
-
         $addressDTO['region'] = ['region' => $region];
-        $streetDTO = explode("\n", $addressDTO['street']);
 
+        $streetDTO = explode("\n", $addressDTO['street']);
         if (count($streetDTO) < 2) {
             $streetDTO[] = '';
         }
-
         $addressDTO['street'] = $streetDTO;
 
-        if (!$addressDTO['firstname']) {
+        if (empty($addressDTO['firstname'])) {
             $addressDTO['firstname'] = $customer->getFirstname();
         }
 
-        if (!$addressDTO['lastname']) {
+        if (empty($addressDTO['lastname'])) {
             $addressDTO['lastname'] = $customer->getLastname();
         }
 
-        if(!$addressDTO['city']) {
+        if (empty($addressDTO['city'])) {
             $addressDTO['city'] = '';
         }
 
-        if (!$addressDTO['country_id']) {
+        if (empty($addressDTO['country_id'])) {
             $addressDTO['country_id'] = $this->getDefaultCountry();
         }
 
-        if (!$addressDTO['postcode']) {
+        if (empty($addressDTO['postcode'])) {
             $addressDTO['postcode'] = '';
         }
 
-        if (!$addressDTO['telephone']) {
+        if (empty($addressDTO['telephone'])) {
             $addressDTO['telephone'] = '';
         }
 
@@ -155,11 +175,16 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
     /**
      * @return string
      */
-    private function getDefaultCountry()
+    public function getDefaultCountry(): string
     {
         /** @var Mage_Core_Helper_Data $helper */
         $helper = Mage::helper('core');
 
         return $helper->getDefaultCountry();
+    }
+
+    public function getFieldsBlacklist(): array
+    {
+        return $this->fieldsBlacklist;
     }
 }
