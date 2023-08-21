@@ -144,7 +144,8 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
 
         try {
             $quoteObj->setCouponCode($couponCode);
-            $quoteObj->collectTotals()->save();
+
+            $this->cartModel->saveQuote($quoteObj);
 
             if ($quoteObj->getCouponCode()) {
                 return $this->_result(200, true);
@@ -172,7 +173,9 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
 
         try {
             $quoteObj = $this->requestModel->currentQuote($this->getRequest());
-            $quoteObj->setCouponCode('')->collectTotals()->save();
+            $quoteObj->setCouponCode('');
+            
+            $this->cartModel->saveQuote($quoteObj);
 
             return $this->_result(200, true);
         } catch (Exception $err) {
