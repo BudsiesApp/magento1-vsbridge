@@ -35,7 +35,7 @@ class Divante_VueStorefrontBridge_StockController extends Divante_VueStorefrontB
             $product = Mage::getModel('catalog/product')->load($product_id);
             $stock = $product->getStockItem();
             $stockDTO = $stock->getData();
-            $stockDTO['is_in_stock'] = boolval($stockDTO['is_in_stock']);
+            $stockDTO['is_in_stock'] = boolval($stockDTO['manage_stock']) ? boolval($stockDTO['is_in_stock']) : true;
             $stockDTO['notify_stock_qty'] = $stock->getNotifyStockQty();
 
             return $this->_result(200, $stockDTO);
