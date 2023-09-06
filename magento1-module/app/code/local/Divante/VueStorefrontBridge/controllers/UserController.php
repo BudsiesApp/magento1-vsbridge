@@ -65,11 +65,17 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
      */
     public function resetPasswordPostAction()
     {
-        $customerId = (int)$this->getRequest()->getPost('id');
-        $resetPasswordLinkToken = (string)$this->getRequest()->getPost('token');
-        $password = (string)$this->getRequest()->getPost('password');
-        $passwordConfirmation = (string)$this->getRequest()->getPost('confirmation');
+        if (!$this->_checkHttpMethod('POST')) {
+            return $this->_result(500, 'Only POST method allowed');
+        }
 
+        $request = $this->_getJsonBody();
+
+        $customerId = (int)$request->id;
+        $resetPasswordLinkToken = (string)$request->token;
+        $password = (string)$request->password;
+        $passwordConfirmation = (string)$request->confirmation;
+        
         try {
             $this->_validateResetPasswordLinkToken($customerId, $resetPasswordLinkToken);
         } catch (Exception $exception) {
