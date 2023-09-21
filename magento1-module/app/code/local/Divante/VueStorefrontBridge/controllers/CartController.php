@@ -54,7 +54,7 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     {
         try {
             if ($this->getRequest()->getMethod() !== 'POST' && $this->getRequest()->getMethod() !== 'OPTIONS') {
-                return $this->_result(500, 'Only POST method allowed');
+                return $this->_result(405, 'Only POST method allowed');
             }
 
             $store = $this->_currentStore();
@@ -100,11 +100,11 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     {
         try {
             if (!$this->_checkHttpMethod('GET')) {
-                return $this->_result(500, 'Only GET method allowed');
+                return $this->_result(405, 'Only GET method allowed');
             }
 
             if (!$this->requestModel->validateQuote($this->getRequest())) {
-                return $this->_result(500, $this->requestModel->getErrorMessage());
+                return $this->_result(400, $this->requestModel->getErrorMessage());
             }
 
             /** @var Mage_Sales_Model_Quote $quoteObj */
@@ -128,18 +128,18 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     public function applyCouponAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         if (!$this->requestModel->validateQuote($this->getRequest())) {
-            return $this->_result(500, $this->requestModel->getErrorMessage());
+            return $this->_result(400, $this->requestModel->getErrorMessage());
         }
 
         $quoteObj = $this->requestModel->currentQuote($this->getRequest());
         $couponCode = $this->getRequest()->getParam('coupon');
 
         if (!$couponCode) {
-            return $this->_result(500, 'Coupon code is required');
+            return $this->_result(400, 'Coupon code is required');
         }
 
         try {
@@ -164,11 +164,11 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     public function deleteCouponAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         if (!$this->requestModel->validateQuote($this->getRequest())) {
-            return $this->_result(500, $this->requestModel->getErrorMessage());
+            return $this->_result(400, $this->requestModel->getErrorMessage());
         }
 
         try {
@@ -190,11 +190,11 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     public function couponAction()
     {
         if (!$this->_checkHttpMethod('GET')) {
-            return $this->_result(500, 'Only GET method allowed');
+            return $this->_result(405, 'Only GET method allowed');
         }
 
         if (!$this->requestModel->validateQuote($this->getRequest())) {
-            return $this->_result(500, $this->requestModel->getErrorMessage());
+            return $this->_result(400, $this->requestModel->getErrorMessage());
         }
 
         try {
@@ -216,11 +216,11 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     {
         try {
             if (!$this->_checkHttpMethod(array('GET', 'POST'))) {
-                return $this->_result(500, 'Only GET or POST methods allowed');
+                return $this->_result(405, 'Only GET or POST methods allowed');
             }
 
             if (!$this->requestModel->validateQuote($this->getRequest())) {
-                return $this->_result(500, $this->requestModel->getErrorMessage());
+                return $this->_result(400, $this->requestModel->getErrorMessage());
             }
 
             $quoteObj = $this->requestModel->currentQuote($this->getRequest());
@@ -319,12 +319,12 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     public function paymentMethodsAction()
     {
         if (!$this->_checkHttpMethod('GET')) {
-            return $this->_result(500, 'Only GET method allowed');
+            return $this->_result(405, 'Only GET method allowed');
         }
 
         try {
             if (!$this->requestModel->validateQuote($this->getRequest())) {
-                return $this->_result(500, $this->requestModel->getErrorMessage());
+                return $this->_result(400, $this->requestModel->getErrorMessage());
             }
 
             $quoteObj = $this->requestModel->currentQuote($this->getRequest());
@@ -392,11 +392,11 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     {
         try {
             if (!$this->_checkHttpMethod('POST')) {
-                return $this->_result(500, 'Only POST method allowed');
+                return $this->_result(405, 'Only POST method allowed');
             }
 
             if (!$this->requestModel->validateQuote($this->getRequest())) {
-                return $this->_result(500, $this->requestModel->getErrorMessage());
+                return $this->_result(400, $this->requestModel->getErrorMessage());
             }
 
             $quoteObj = $this->requestModel->currentQuote($this->getRequest());
@@ -411,7 +411,7 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
             }
 
             if (is_null($quoteShippingAddress->getId())) {
-                $this->_result(500, 'Shipping address is not set');
+                $this->_result(400, 'Shipping address is not set');
             }
 
             try {
@@ -451,21 +451,21 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
     public function updateAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $request = $this->_getJsonBody();
 
         if (!$request) {
-            return $this->_result(500, 'No JSON object found in the request body');
+            return $this->_result(400, 'No JSON object found in the request body');
         }
 
         if (!$request->cartItem) {
-            return $this->_result(500, 'No cartItem data provided!');
+            return $this->_result(400, 'No cartItem data provided!');
         }
 
         if (!$this->requestModel->validateQuote($this->getRequest())) {
-            return $this->_result(500, $this->requestModel->getErrorMessage());
+            return $this->_result(400, $this->requestModel->getErrorMessage());
         }
 
         $cartItem = $request->cartItem;
@@ -482,7 +482,7 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
             $product = $this->cartModel->getProduct($cartItem->sku);
 
             if (!$product) {
-                return $this->_result(500, 'No product found with given SKU = ' . $cartItem->sku);
+                return $this->_result(400, 'No product found with given SKU = ' . $cartItem->sku);
             }
 
             $item = $this->cartModel->addProductToCart($quoteObj, $cartItem);
@@ -505,15 +505,15 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
         $request = $this->_getJsonBody();
 
         if (!$request) {
-            return $this->_result(500, 'No JSON object found in the request body');
+            return $this->_result(405, 'No JSON object found in the request body');
         }
 
         if ((!$request->cartItem)) {
-            return $this->_result(500, 'No cartItem data provided!');
+            return $this->_result(400, 'No cartItem data provided!');
         }
 
         if (!$this->requestModel->validateQuote($this->getRequest())) {
-            return $this->_result(500, $this->requestModel->getErrorMessage());
+            return $this->_result(400, $this->requestModel->getErrorMessage());
         }
 
         $cartItem = $request->cartItem;

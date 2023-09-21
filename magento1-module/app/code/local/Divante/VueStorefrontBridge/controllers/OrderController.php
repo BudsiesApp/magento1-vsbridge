@@ -39,16 +39,13 @@ class Divante_VueStorefrontBridge_OrderController extends Divante_VueStorefrontB
     public function createAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $request = $this->_getJsonBody();
 
         if (!$request) {
-            return $this->_result(
-                500,
-                'No JSON object found in the request body'
-            );
+            return $this->_result(400, 'No JSON object found in the request body');
         }
 
         $customerObj = null;
@@ -67,7 +64,7 @@ class Divante_VueStorefrontBridge_OrderController extends Divante_VueStorefrontB
         $quoteObj = $this->requestModel->currentQuote($this->getRequest());
 
         if (!$quoteObj->getIsActive()) {
-            return $this->_result(500, sprintf('No such entity with id %s', $request->cart_id));
+            return $this->_result(400, sprintf('No such entity with id %s', $request->cart_id));
         }
 
         if (!$quoteObj->getReservedOrderId()) {

@@ -20,14 +20,14 @@ class Divante_VueStorefrontBridge_StockController extends Divante_VueStorefrontB
         $params = $this->getRequest()->getParams();
 
         if (!$this->_checkHttpMethod('GET')) {
-            return $this->_result(500, 'Only GET method allowed');
+            return $this->_result(405, 'Only GET method allowed');
         }
 
         $paramKey = @array_keys($params)[0];
         $sku = $params[$paramKey];
 
         if (!$sku) {
-            return $this->_result(500, 'No SKU provided');
+            return $this->_result(400, 'No SKU provided');
         }
 
         try {

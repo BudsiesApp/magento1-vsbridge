@@ -53,27 +53,27 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
     public function listAction()
     {
         if (!$this->_checkHttpMethod('GET')) {
-            return $this->_result(500, 'Only GET method allowed');
+            return $this->_result(405, 'Only GET method allowed');
         }
 
         /** @var Mage_Customer_Model_Customer $customer */
         $customer = $this->requestModel->currentCustomer($this->getRequest());
 
-        if ($customer && $customer->getId()) {
-            try {
-                $customerAddresses = [];
-
-                foreach ($customer->getAddresses() as $address) {
-                    $customerAddresses[] = $this->prepareAddress($address, $customer);
-                }
-
-                return $this->_result(200, $customerAddresses);
-            } catch (Exception $e) {
-                return $this->_result(500, $e->getMessage());
-            }
+        if (!$customer || !$customer->getId()) {
+            return $this->_result(400, 'Customer not found');
         }
 
-        return $this->_result(500, 'User is not authroized to access self');
+        try {
+            $customerAddresses = [];
+
+            foreach ($customer->getAddresses() as $address) {
+                $customerAddresses[] = $this->prepareAddress($address, $customer);
+            }
+
+            return $this->_result(200, $customerAddresses);
+        } catch (Exception $e) {
+            return $this->_result(500, $e->getMessage());
+        }
     }
 
     /**
@@ -82,44 +82,44 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
     public function deleteAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $request = $this->_getJsonBody();
 
         if (!$request) {
-            return $this->_result(500, 'No JSON object found in the request body');
+            return $this->_result(400, 'No JSON object found in the request body');
         }
 
         if (!isset($request->address) || (!isset($request->address->id))) {
-            return $this->_result(500, 'No address data provided!');
+            return $this->_result(400, 'No address data provided!');
         }
 
         $customer = $this->requestModel->currentCustomer($this->getRequest());
 
-        if ($customer && $customer->getId()) {
-            $address = $request->address;
-            $customerAddress = $this->addressModel->loadCustomerAddressById($address);
-
-            if (!$customerAddress->getId()) {
-                return $this->_result(500, sprintf('Address with %d does not exist.', $address->id));
-            }
-
-            if ($customerAddress->getCustomerId() !== $customer->getId()) {
-                return $this->_result(500, $this->helper->__('The address does not belong to this customer.'));
-            }
-
-            try {
-                $customerAddress->delete();
-
-                return $this->_result(200, $this->helper->__('The address has been deleted.'));
-            } catch (Exception $e) {
-                Mage::logException($e);
-                return $this->_result(500, $this->helper->__('An error occurred while deleting the address.'));
-            }
+        if (!$customer || !$customer->getId()) {
+            return $this->_result(400, 'Customer not found');
         }
 
-        return $this->_result(500, 'User is not authroized to access self');
+        $address = $request->address;
+        $customerAddress = $this->addressModel->loadCustomerAddressById($address);
+
+        if (!$customerAddress->getId()) {
+            return $this->_result(404, sprintf('Address with %d does not exist.', $address->id));
+        }
+
+        if ($customerAddress->getCustomerId() !== $customer->getId()) {
+            return $this->_result(403, $this->helper->__('The address does not belong to this customer.'));
+        }
+
+        try {
+            $customerAddress->delete();
+
+            return $this->_result(200, $this->helper->__('The address has been deleted.'));
+        } catch (Exception $e) {
+            Mage::logException($e);
+            return $this->_result(500, $this->helper->__('An error occurred while deleting the address.'));
+        }
     }
 
     /**
@@ -128,35 +128,35 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
     public function getAction()
     {
         if (!$this->_checkHttpMethod('GET')) {
-            return $this->_result(500, 'Only GET method allowed');
+            return $this->_result(405, 'Only GET method allowed');
         }
 
         $request = $this->getRequest();
         $addressId = $request->getParam('addressId', 0);
 
         if (!$addressId) {
-            return $this->_result(500, 'No address data provided!');
+            return $this->_result(400, 'No address data provided!');
         }
 
         $customer = $this->requestModel->currentCustomer($this->getRequest());
 
-        if ($customer && $customer->getId()) {
-            $address = new stdClass();
-            $address->id = $addressId;
-            $customerAddress = $this->addressModel->loadCustomerAddressById($address);
-
-            if (!$customerAddress->getId()) {
-                return $this->_result(500, sprintf('Address with %d does not exist.', $address->id));
-            }
-
-            if ($customerAddress->getCustomerId() !== $customer->getId()) {
-                return $this->_result(500, $this->helper->__('The address does not belong to this customer.'));
-            }
-
-            return $this->_result(200, $this->prepareAddress($customerAddress, $customer));
+        if (!$customer || !$customer->getId()) {
+            return $this->_result(400, 'Customer not found');
         }
 
-        return $this->_result(500, 'User is not authorized to access self');
+        $address = new stdClass();
+        $address->id = $addressId;
+        $customerAddress = $this->addressModel->loadCustomerAddressById($address);
+
+        if (!$customerAddress->getId()) {
+            return $this->_result(404, sprintf('Address with %d does not exist.', $address->id));
+        }
+
+        if ($customerAddress->getCustomerId() !== $customer->getId()) {
+            return $this->_result(403, $this->helper->__('The address does not belong to this customer.'));
+        }
+
+        return $this->_result(200, $this->prepareAddress($customerAddress, $customer));
     }
 
     /**
@@ -165,43 +165,43 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
     public function updateAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $request = $this->_getJsonBody();
 
         if (!$request) {
-            return $this->_result(500, 'No JSON object found in the request body');
+            return $this->_result(400, 'No JSON object found in the request body');
         }
 
         if (!$request->address) {
-            return $this->_result(500, 'No address data provided!');
+            return $this->_result(400, 'No address data provided!');
         }
 
         $customer = $this->requestModel->currentCustomer($this->getRequest());
 
-        if ($customer && $customer->getId()) {
-            $addressData = $request->address;
-            $address = $this->addressModel->loadCustomerAddressById($addressData);
-
-            if ($address->getId() && $address->getCustomerId() !== $customer->getId()) {
-                return $this->_result(500, 'User is not authorized to access self');
-            }
-
-            try {
-                $this->addressModel->saveAddress($address, _object_to_array($addressData), $customer);
-                $addressData = new stdClass();
-                $addressData->id = $address->getId();
-                $address = $this->addressModel->loadCustomerAddressById($addressData);
-                $customer = Mage::getModel('customer/customer')->load($customer->getId());
-            } catch (\Exception $e) {
-                return $this->_result(500, $e->getMessage());
-            }
-
-            return $this->_result(200, $this->prepareAddress($address, $customer));
+        if (!$customer || !$customer->getId()) {
+            return $this->_result(403, 'Customer not found');
         }
 
-        return $this->_result(500, 'User is not authorized to access self');
+        $addressData = $request->address;
+        $address = $this->addressModel->loadCustomerAddressById($addressData);
+
+        if ($address->getId() && $address->getCustomerId() !== $customer->getId()) {
+            return $this->_result(403, 'The address does not belong to this customer.');
+        }
+
+        try {
+            $this->addressModel->saveAddress($address, _object_to_array($addressData), $customer);
+            $addressData = new stdClass();
+            $addressData->id = $address->getId();
+            $address = $this->addressModel->loadCustomerAddressById($addressData);
+            $customer = Mage::getModel('customer/customer')->load($customer->getId());
+        } catch (\Exception $e) {
+            return $this->_result(500, $e->getMessage());
+        }
+
+        return $this->_result(200, $this->prepareAddress($address, $customer));
     }
 
     /**
