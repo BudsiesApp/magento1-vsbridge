@@ -1,4 +1,4 @@
-'<?php
+<?php
 require_once('AbstractController.php');
 require_once(__DIR__.'/../helpers/JWT.php');
 
@@ -509,5 +509,3 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
         }
     }
 }
-?>
-'
