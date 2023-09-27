@@ -185,16 +185,20 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
         }
 
         $addressData = $request->address;
-        $address = $this->addressModel->loadCustomerAddressById($addressData);
+        $customerAddress = $this->addressModel->loadCustomerAddressById($addressData);
 
-        if ($address->getId() && $address->getCustomerId() !== $customer->getId()) {
-            return $this->_result(403, 'The address does not belong to this customer.');
+        if (!$customerAddress->getId()) {
+            return $this->_result(404, sprintf('Address with %d does not exist.', $addressData->id));
+        }
+
+        if ($customerAddress->getCustomerId() !== $customer->getId()) {
+            return $this->_result(403, $this->helper->__('The address does not belong to this customer.'));
         }
 
         try {
-            $this->addressModel->saveAddress($address, _object_to_array($addressData), $customer);
+            $this->addressModel->saveAddress($customerAddress, _object_to_array($addressData), $customer);
             $addressData = new stdClass();
-            $addressData->id = $address->getId();
+            $addressData->id = $customerAddress->getId();
             $address = $this->addressModel->loadCustomerAddressById($addressData);
             $customer = Mage::getModel('customer/customer')->load($customer->getId());
         } catch (\Exception $e) {
