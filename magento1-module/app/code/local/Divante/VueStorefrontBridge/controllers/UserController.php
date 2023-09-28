@@ -23,16 +23,16 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
     public function loginAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         } else {
             try {
                 $request = $this->_getJsonBody();
 
                 if (!$request) {
-                    return $this->_result(500, 'No JSON object found in the request body');
+                    return $this->_result(400, 'No JSON object found in the request body');
                 } else {
                     if (!$request->username || !$request->password) {
-                        return $this->_result(500, 'No username or password given!');
+                        return $this->_result(400, 'No username or password given!');
                     } else {
                         $session = Mage::getSingleton( 'customer/session' );
                         $secretKey = $this->getSecretKey();
@@ -66,7 +66,7 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
     public function resetPasswordPostAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $request = $this->_getJsonBody();
@@ -225,15 +225,15 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
      */
     public function changePasswordAction() {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         } else {
             $request = $this->_getJsonBody();
             if(!$request || !$request->currentPassword || !$request->newPassword) {
-                return $this->_result(500, 'No current and new passwords provided!');
+                return $this->_result(400, 'No current and new passwords provided!');
             } else {
                 $customer = $this->_currentCustomer($this->getRequest());
                 if(!$customer) {
-                    return $this->_result(500, 'No customer found with the specified token');
+                    return $this->_result(400, 'No customer found with the specified token');
                 } else {
                     try {
                         $customer->setWebsiteId(Mage::app()->getStore()->getWebsiteId())->authenticate($customer->getEmail(), $request->currentPassword);
@@ -256,16 +256,16 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
     public function refreshAction() {
         try {
             if (!$this->_checkHttpMethod('POST')) {
-                return $this->_result(500, 'Only POST method allowed');
+                return $this->_result(405, 'Only POST method allowed');
             } else {
                 $request = $this->_getJsonBody();
                 if(!$request || !$request->refreshToken) {
-                    return $this->_result(500, 'No request token provided');
+                    return $this->_result(400, 'No request token provided');
                 } else  {
                     $secretKey = $this->getSecretKey();
                     $loginRequest = JWT::decode($request->refreshToken, $secretKey, 'HS256');
                     if(!$loginRequest || !$loginRequest->username || !$loginRequest->password) {
-                        return $this->_result(500, 'Invalid token or no username password pair');
+                        return $this->_result(403, 'Invalid token or no username password pair');
                     } else {
                         $session = Mage::getSingleton( 'customer/session' );
 
@@ -275,10 +275,10 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                                 $refreshToken = JWT::encode($loginRequest, $secretKey);
                                 return $this->_result(200, JWT::encode(array('id' => $user->getId()), $secretKey), array('refreshToken' => $refreshToken));
                             } else {
-                                return $this->_result(500, 'You did not sign in correctly or your account is temporarily disabled.');
+                                return $this->_result(403, 'You did not sign in correctly or your account is temporarily disabled.');
                             }
                         } else {
-                            return $this->_result(500, 'You did not sign in correctly or your account is temporarily disabled.');
+                            return $this->_result(403, 'You did not sign in correctly or your account is temporarily disabled.');
                         }
                     }
                 }
@@ -291,79 +291,79 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
     public function orderHistoryAction()
     {
         if (!$this->_checkHttpMethod('GET')) {
-            return $this->_result(500, 'Only GET method allowed');
+            return $this->_result(405, 'Only GET method allowed');
         }
 
         $customer = $this->_currentCustomer($this->getRequest());
 
-        if ($customer) {
-            $request = $this->getRequest();
-            $page = max(abs(intval($request->getParam('page', 1))), 1);
-            $pageSize = min(abs(intval($request->getParam('pageSize', 50))), 50);
-
-            /** @var Mage_Sales_Model_Resource_Order_Collection $orderCollection */
-            $orderCollection = Mage::getResourceModel('sales/order_collection');
-            $orderCollection
-                ->addFieldToSelect('*')
-                ->setPageSize($pageSize)->setCurPage($page)
-                ->addFieldToFilter('customer_id', $customer->getId())
-                ->addFieldToFilter(
-                    'state',
-                    ['in' => Mage::getSingleton('sales/order_config')->getVisibleOnFrontStates()]
-                )
-                ->setOrder('created_at', 'desc');
-
-            $ordersDTO = [];
-            /** @var Mage_Catalog_Model_Resource_Product $resourceModel */
-            $resourceModel = Mage::getResourceModel('catalog/product');
-
-            /** @var Mage_Sales_Model_Order $order */
-            foreach ($orderCollection as $order) {
-                $orderDTO = $order->getData();
-                $orderDTO['id'] = $orderDTO['entity_id'];
-                $orderDTO['items'] = [];
-
-                foreach($order->getAllVisibleItems() as $item) {
-                    $itemDTO = $item->getData();
-                    $itemDTO['id'] = $itemDTO['item_id'];
-                    $itemDTO['thumbnail'] = null;
-
-                    $image = $resourceModel->getAttributeRawValue(
-                        $item->getProductId(),
-                        'thumbnail',
-                        $order->getStoreId()
-                    );
-
-                    if ($image) {
-                        $itemDTO['thumbnail'] = $image;
-                    }
-
-                    $orderDTO['items'][] = $itemDTO;
-                }
-
-                $orderDTO['discount_tax_compensation_amount'] = $orderDTO['hidden_tax_amount'];
-
-                $payment = $order->getPayment();
-                $orderDTO['payment'] = $payment->toArray();
-                $orderDTO['payment']['additional_information'][0] = $payment->getMethodInstance()->getTitle();
-
-                //TODO explode street by linebreak with mapper when mapper merged
-                $shippingAddress = $order->getShippingAddress()->getData();
-                $shippingAddress['street'] = explode("\n", $shippingAddress['street']);
-                $orderDTO['extension_attributes']['shipping_assignments'][0]['shipping']['address'] = $shippingAddress;
-
-                //TODO explode street by linebreak with mapper when mapper merged
-                $billingAddress = $order->getBillingAddress()->getData();
-                $billingAddress['street'] = explode("\n", $billingAddress['street']);
-                $orderDTO['billing_address'] = $billingAddress; //TODO explode street by linebreak when mapper merged
-
-                $ordersDTO[] = $orderDTO;
-            }
-
-            return $this->_result(200, array('items' => $ordersDTO));
+        if (!$customer) {
+            return $this->_result(400, 'Customer not found');
         }
 
-        return $this->_result(500, 'User is not authroized to access self');
+        $request = $this->getRequest();
+        $page = max(abs(intval($request->getParam('page', 1))), 1);
+        $pageSize = min(abs(intval($request->getParam('pageSize', 50))), 50);
+
+        /** @var Mage_Sales_Model_Resource_Order_Collection $orderCollection */
+        $orderCollection = Mage::getResourceModel('sales/order_collection');
+        $orderCollection
+            ->addFieldToSelect('*')
+            ->setPageSize($pageSize)->setCurPage($page)
+            ->addFieldToFilter('customer_id', $customer->getId())
+            ->addFieldToFilter(
+                'state',
+                ['in' => Mage::getSingleton('sales/order_config')->getVisibleOnFrontStates()]
+            )
+            ->setOrder('created_at', 'desc');
+
+        $ordersDTO = [];
+        /** @var Mage_Catalog_Model_Resource_Product $resourceModel */
+        $resourceModel = Mage::getResourceModel('catalog/product');
+
+        /** @var Mage_Sales_Model_Order $order */
+        foreach ($orderCollection as $order) {
+            $orderDTO = $order->getData();
+            $orderDTO['id'] = $orderDTO['entity_id'];
+            $orderDTO['items'] = [];
+
+            foreach($order->getAllVisibleItems() as $item) {
+                $itemDTO = $item->getData();
+                $itemDTO['id'] = $itemDTO['item_id'];
+                $itemDTO['thumbnail'] = null;
+
+                $image = $resourceModel->getAttributeRawValue(
+                    $item->getProductId(),
+                    'thumbnail',
+                    $order->getStoreId()
+                );
+
+                if ($image) {
+                    $itemDTO['thumbnail'] = $image;
+                }
+
+                $orderDTO['items'][] = $itemDTO;
+            }
+
+            $orderDTO['discount_tax_compensation_amount'] = $orderDTO['hidden_tax_amount'];
+
+            $payment = $order->getPayment();
+            $orderDTO['payment'] = $payment->toArray();
+            $orderDTO['payment']['additional_information'][0] = $payment->getMethodInstance()->getTitle();
+
+            //TODO explode street by linebreak with mapper when mapper merged
+            $shippingAddress = $order->getShippingAddress()->getData();
+            $shippingAddress['street'] = explode("\n", $shippingAddress['street']);
+            $orderDTO['extension_attributes']['shipping_assignments'][0]['shipping']['address'] = $shippingAddress;
+
+            //TODO explode street by linebreak with mapper when mapper merged
+            $billingAddress = $order->getBillingAddress()->getData();
+            $billingAddress['street'] = explode("\n", $billingAddress['street']);
+            $orderDTO['billing_address'] = $billingAddress; //TODO explode street by linebreak when mapper merged
+
+            $ordersDTO[] = $orderDTO;
+        }
+
+        return $this->_result(200, array('items' => $ordersDTO));
     }
 
     /**
@@ -373,17 +373,17 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
     public function createAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $request = $this->_getJsonBody();
 
         if (!$request) {
-            return $this->_result(500, 'No JSON object found in the request body');
+            return $this->_result(400, 'No JSON object found in the request body');
         }
 
         if ((!$request->customer || !$request->customer->email) || !$request->password) {
-            return $this->_result(500, 'No customer data or password provided!');
+            return $this->_result(400, 'No customer data or password provided!');
         }
 
         $websiteId = Mage::app()->getWebsite()->getId();
@@ -412,101 +412,100 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
     {
         $customer = $this->_currentCustomer($this->getRequest());
         if(!$customer) {
-            return $this->_result(500, 'User is not authroized to access self');
-        } else {
-            $updatedShippingId = 0;
-            $updatedBillingId = 0;
+            return $this->_result(400, 'Customer not found');
+        }
 
-            try {
-                if ($this->_checkHttpMethod(array('POST'))) { // modify user data
-                    $request = _object_to_array($this->_getJsonBody());
-                    if(!$request['customer']) {
-                        return $this->_result(500, 'No customer data provided!');
-                    }
+        $updatedShippingId = 0;
+        $updatedBillingId = 0;
 
-                    //die(print_r($customer->getData(), true));
-                    $updatedCustomer = $request['customer'];
-                    $updatedCustomer['entity_id'] = $customer->getId();
+        try {
+            if ($this->_checkHttpMethod(array('POST'))) { // modify user data
+                $request = _object_to_array($this->_getJsonBody());
+                if(!$request['customer']) {
+                    return $this->_result(400, 'No customer data provided!');
+                }
 
-                    $customer->setData('firstname', $updatedCustomer['firstname'])
-                            ->setData('lastname', $updatedCustomer['lastname'])
-                            ->setData('email', $updatedCustomer['email']);
+                //die(print_r($customer->getData(), true));
+                $updatedCustomer = $request['customer'];
+                $updatedCustomer['entity_id'] = $customer->getId();
 
-                    if (isset($updatedCustomer['dob'])) {
-                        $customer->setData('dob', $updatedCustomer['dob']);
-                    }
+                $customer->setData('firstname', $updatedCustomer['firstname'])
+                        ->setData('lastname', $updatedCustomer['lastname'])
+                        ->setData('email', $updatedCustomer['email']);
 
-                    $customer->save();
+                if (isset($updatedCustomer['dob'])) {
+                    $customer->setData('dob', $updatedCustomer['dob']);
+                }
 
-                    if ($updatedCustomer['addresses']) {
-                        foreach($updatedCustomer['addresses'] as $updatedAdress) {
-                            $updatedAdress['region'] = $updatedAdress['region']['region'];
+                $customer->save();
 
-                            if($updatedAdress['default_billing']) {
-                                $bAddressId = $customer->getDefaultBilling();
-                                $bAddress = Mage::getModel('customer/address');
+                if ($updatedCustomer['addresses']) {
+                    foreach($updatedCustomer['addresses'] as $updatedAdress) {
+                        $updatedAdress['region'] = $updatedAdress['region']['region'];
 
-                                if($bAddressId)
-                                    $bAddress->load($bAddressId);
+                        if($updatedAdress['default_billing']) {
+                            $bAddressId = $customer->getDefaultBilling();
+                            $bAddress = Mage::getModel('customer/address');
 
-                                $updatedAdress['parent_id'] = $customer->getId();
+                            if($bAddressId)
+                                $bAddress->load($bAddressId);
+
+                            $updatedAdress['parent_id'] = $customer->getId();
 
 
-                                $bAddress->setData($updatedAdress)->setIsDefaultBilling(1)->save();
-                                $updatedBillingId = $bAddress->getId();
-                            }
-                            if($updatedAdress['default_shipping']) {
-                                $sAddressId = $customer->getDefaultShipping();
-                                $sAddress = Mage::getModel('customer/address');
+                            $bAddress->setData($updatedAdress)->setIsDefaultBilling(1)->save();
+                            $updatedBillingId = $bAddress->getId();
+                        }
+                        if($updatedAdress['default_shipping']) {
+                            $sAddressId = $customer->getDefaultShipping();
+                            $sAddress = Mage::getModel('customer/address');
 
-                                if($sAddressId)
-                                    $sAddress->load($sAddressId);
+                            if($sAddressId)
+                                $sAddress->load($sAddressId);
 
-                                $updatedAdress['parent_id'] = $customer->getId();
-                                $sAddress->setData($updatedAdress)->setIsDefaultShipping(1)->save();
-                                $updatedShippingId = $sAddress->getId();
-                            }
+                            $updatedAdress['parent_id'] = $customer->getId();
+                            $sAddress->setData($updatedAdress)->setIsDefaultShipping(1)->save();
+                            $updatedShippingId = $sAddress->getId();
                         }
                     }
                 }
-                $customer = Mage::getModel('customer/customer')->load($customer->getId());
-                $customerDTO = $customer->getData();
-                $subscription = Mage::getModel('newsletter/subscriber')->loadByCustomer($customer);
-                $customerDTO['is_subscribed'] = $subscription->isSubscribed();
+            }
+            $customer = Mage::getModel('customer/customer')->load($customer->getId());
+            $customerDTO = $customer->getData();
+            $subscription = Mage::getModel('newsletter/subscriber')->loadByCustomer($customer);
+            $customerDTO['is_subscribed'] = $subscription->isSubscribed();
 
-                $allAddress = $customer->getAddresses();
-                $defaultBilling  = $customer->getDefaultBilling();
-                $defaultShipping = $customer->getDefaultShipping();
-                $customerDTO['addresses'] = array();
+            $allAddress = $customer->getAddresses();
+            $defaultBilling  = $customer->getDefaultBilling();
+            $defaultShipping = $customer->getDefaultShipping();
+            $customerDTO['addresses'] = array();
 
-                foreach ($allAddress as $address) {
-                    $addressDTO = $this->addressModel->prepareAddress($address, $customer);
+            foreach ($allAddress as $address) {
+                $addressDTO = $this->addressModel->prepareAddress($address, $customer);
 
-                    if($defaultBilling == $address->getId() || $address->getId() == $updatedBillingId) {
-                        // TODO: Street + Region fields (region_code should be)
+                if($defaultBilling == $address->getId() || $address->getId() == $updatedBillingId) {
+                    // TODO: Street + Region fields (region_code should be)
 
-                        // its customer default billing address
-                        $addressDTO['default_billing'] = true;
-                        $customerDTO['default_billing'] = $address->getId();
-                    } 
-                    
-                    if($defaultShipping == $address->getId()|| $address->getId() == $updatedShippingId) {
-                        // its customer default shipping address
-                        $addressDTO['default_shipping'] = true;
-                        $customerDTO['default_shipping'] = $address->getId();
-                    }
-
-                    $customerDTO['addresses'][] = $this->_filterDTO($addressDTO, $this->addressModel->getFieldsBlacklist());
+                    // its customer default billing address
+                    $addressDTO['default_billing'] = true;
+                    $customerDTO['default_billing'] = $address->getId();
+                } 
+                
+                if($defaultShipping == $address->getId()|| $address->getId() == $updatedShippingId) {
+                    // its customer default shipping address
+                    $addressDTO['default_shipping'] = true;
+                    $customerDTO['default_shipping'] = $address->getId();
                 }
 
-                $customerDTO['id'] = $customerDTO['entity_id'];
-
-                $filteredCustomerData = $this->_filterDTO($customerDTO, array('password', 'password_hash', 'password_confirmation', 'confirmation', 'entity_type_id'));
-                return $this->_result(200, $filteredCustomerData);
-            } catch (Exception $err) {
-                return $this->_result(500, $err->getMessage());
+                $customerDTO['addresses'][] = $this->_filterDTO($addressDTO, $this->addressModel->getFieldsBlacklist());
             }
+
+            $customerDTO['id'] = $customerDTO['entity_id'];
+
+            $filteredCustomerData = $this->_filterDTO($customerDTO, array('password', 'password_hash', 'password_confirmation', 'confirmation', 'entity_type_id'));
+            return $this->_result(200, $filteredCustomerData);
+        } catch (Exception $err) {
+            return $this->_result(500, $err->getMessage());
         }
     }
 }
-?>

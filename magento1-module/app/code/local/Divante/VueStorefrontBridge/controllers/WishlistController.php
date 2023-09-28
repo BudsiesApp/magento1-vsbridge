@@ -47,19 +47,19 @@ class Divante_VueStorefrontBridge_WishlistController extends Divante_VueStorefro
     public function pullAction()
     {
         if (!$this->_checkHttpMethod('GET')) {
-            return $this->_result(500, 'Only GET method allowed');
+            return $this->_result(405, 'Only GET method allowed');
         }
 
         $customer = $this->currentCustomer($this->getRequest());
 
         if (!$customer || !$customer->getId()) {
-            return $this->_result(500, 'No customer found');
+            return $this->_result(400, 'No customer found');
         }
 
         $wishList = $this->wishListModel->getWishListByCustomer($customer);
 
         if (!$wishList) {
-            return $this->_result(500, 'Cannot find WishList for customer.');
+            return $this->_result(404, 'Cannot find WishList for customer.');
         }
 
         $wishListItems = $wishList->getItemCollection();
@@ -74,30 +74,30 @@ class Divante_VueStorefrontBridge_WishlistController extends Divante_VueStorefro
     public function updateAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $request = $this->_getJsonBody();
 
         if (!isset($request->wishListItem)) {
-            return $this->_result(500, 'No wishlist Item data provided');
+            return $this->_result(400, 'No wishlist Item data provided');
         }
 
         $customer = $this->currentCustomer($this->getRequest());
 
         if (!$customer || !$customer->getId()) {
-            return $this->_result(500, 'No customer found');
+            return $this->_result(400, 'No customer found');
         }
 
         $wishlist = $this->wishListModel->getWishListByCustomer($customer);
 
         if (!$wishlist) {
-            return $this->_result(500, 'no wishlist');
+            return $this->_result(404, 'No wishlist found');
         }
 
         if (isset($request->wishListItem->forceUpdate) && $request->wishListItem->forceUpdate) {
             if (!isset($request->wishListItem->productIds)) {
-                return $this->_result(500, 'No product ids');
+                return $this->_result(400, 'No Products provided');
             }
 
             $productIds = $request->wishListItem->productIds;
@@ -114,7 +114,7 @@ class Divante_VueStorefrontBridge_WishlistController extends Divante_VueStorefro
         }
 
         if (!isset($request->wishListItem->productId)) {
-            return $this->_result(500, 'no product');
+            return $this->_result(400, 'No Product provided');
         }
 
         $productId = (int)$request->wishListItem->productId;
@@ -129,11 +129,11 @@ class Divante_VueStorefrontBridge_WishlistController extends Divante_VueStorefro
         $product = $this->wishListModel->getProduct($productId);
 
         if (!$product) {
-            return $this->_result(500, 'No product found with given ID = ' . $productId);
+            return $this->_result(404, 'No product found with given ID = ' . $productId);
         }
 
         if (!$this->wishListModel->productExists($productId)) {
-            return $this->_result(500, 'no product with given ID = ' . $productId);
+            return $this->_result(400, 'No product with given ID = ' . $productId);
         }
 
         $res = $this->wishListModel->addProductToWishlist($wishlist, $productId);
@@ -152,41 +152,41 @@ class Divante_VueStorefrontBridge_WishlistController extends Divante_VueStorefro
     public function deleteAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $request = $this->_getJsonBody();
 
         if (!$request) {
-            return $this->_result(500, 'No JSON object found in the request body');
+            return $this->_result(400, 'No JSON object found in the request body');
         }
 
         if (!$request->wishListItem || !$request->wishListItem->productId) {
-            return $this->_result(500, 'No wishlist Item data provided');
+            return $this->_result(400, 'No wishlist Item data provided');
         }
 
         $customer = $this->currentCustomer($this->getRequest());
 
         if (!$customer || !$customer->getId()) {
-            return $this->_result(500, 'No customer found');
+            return $this->_result(400, 'No customer found');
         }
 
         $wishlist = $this->wishListModel->getWishListByCustomer($customer);
 
         if (!$wishlist) {
-            $this->_result(500, 'No wishlist');
+            $this->_result(404, 'No wishlist found');
         }
 
         $productId = $request->wishListItem->productId;
 
         if (!$productId) {
-            return $this->_result(500, 'No Product provided');
+            return $this->_result(400, 'No Product provided');
         }
 
         $item = $this->wishListModel->findItemByProductId($wishlist, $productId);
 
         if (null === $item) {
-            return $this->_result(500, 'No Product with ID = ' . $productId);
+            return $this->_result(404, 'No Product with ID = ' . $productId);
         }
 
         $itemRemoved = $this->wishListModel->removeProductFromWishlist($wishlist, $item);

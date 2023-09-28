@@ -23,17 +23,17 @@ class Divante_VueStorefrontBridge_ContactController extends Divante_VueStorefron
     public function submitAction()
     {
         if (!$this->_checkHttpMethod('POST')) {
-            return $this->_result(500, 'Only POST method allowed');
+            return $this->_result(405, 'Only POST method allowed');
         }
 
         $json = $this->getJsonBody();
 
         if (!$json) {
-            return $this->_result(500, 'No JSON object found in the request body');
+            return $this->_result(400, 'No JSON object found in the request body');
         }
 
         if (!isset($json->form)) {
-            return $this->_result(500, 'No form data provided');
+            return $this->_result(400, 'No form data provided');
         }
 
         $formData = $json->form;
