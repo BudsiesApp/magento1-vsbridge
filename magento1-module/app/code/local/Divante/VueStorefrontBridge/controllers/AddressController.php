@@ -181,7 +181,7 @@ class Divante_VueStorefrontBridge_AddressController extends Divante_VueStorefron
         $customer = $this->requestModel->currentCustomer($this->getRequest());
 
         if (!$customer || !$customer->getId()) {
-            return $this->_result(403, 'Customer not found');
+            return $this->_result(400, 'Customer not found');
         }
 
         $addressData = $request->address;
