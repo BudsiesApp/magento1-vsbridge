@@ -43,13 +43,11 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                                 $refreshToken = JWT::encode($request, $secretKey, 'HS256');
                                 return $this->_result(200, JWT::encode(array('id' => $user->getId()), $secretKey), array('refreshToken' => $refreshToken));
                             } else {
-                                return $this->_result(500, 'You did not sign in correctly or your account is temporarily disabled.');
+                                return $this->_result(403, 'You did not sign in correctly or your account is temporarily disabled.');
                             }
                         } else {
-                            return $this->_result(500, 'You did not sign in correctly or your account is temporarily disabled.');
+                            return $this->_result(403, 'You did not sign in correctly or your account is temporarily disabled.');
                         }
-
-
                     }
                 }
             } catch (Exception $err) {
