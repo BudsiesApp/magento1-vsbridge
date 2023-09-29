@@ -147,13 +147,13 @@ class Divante_VueStorefrontBridge_CartController extends Divante_VueStorefrontBr
 
             $this->cartModel->saveQuote($quoteObj);
 
-            if ($quoteObj->getCouponCode()) {
+            if ($quoteObj->getCouponCode() === $couponCode) {
                 return $this->_result(200, true);
             }
 
-            return $this->_result(500, false);
+            return $this->_result(400, 'Coupon code is not valid');
         } catch (Exception $err) {
-            return $this->_result(500, false);
+            return $this->_result(500, $err->getMessage());
         }
     }
 
