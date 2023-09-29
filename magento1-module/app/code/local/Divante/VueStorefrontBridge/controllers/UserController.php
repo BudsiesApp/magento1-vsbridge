@@ -50,10 +50,17 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                         }
                     }
                 }
-            } catch (Exception $err) {
-                return $this->_result(500, $err->getMessage());
+            } catch (Mage_Core_Exception $e) {
+                if ($e->getCode() === Mage_Customer_Model_Customer::EXCEPTION_EMAIL_NOT_CONFIRMED
+                    || $e->getCode() === Mage_Customer_Model_Customer::EXCEPTION_INVALID_EMAIL_OR_PASSWORD
+                ) {
+                    return $this->_result(403, $e->getMessage());
+                }
+    
+                return $this->_result(500, $e->getMessage());
+            } catch (Throwable $t) {
+                return $this->_result(500, $t->getMessage());
             }
-
         }
     }
 
@@ -281,8 +288,16 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
                     }
                 }
             }
-        } catch (Exception $err) {
-            return $this->_result(500, $err->getMessage());
+        } catch (Mage_Core_Exception $e) {
+            if ($e->getCode() === Mage_Customer_Model_Customer::EXCEPTION_EMAIL_NOT_CONFIRMED
+                || $e->getCode() === Mage_Customer_Model_Customer::EXCEPTION_INVALID_EMAIL_OR_PASSWORD
+            ) {
+                return $this->_result(403, $e->getMessage());
+            }
+
+            return $this->_result(500, $e->getMessage());
+        } catch (Throwable $t) {
+            return $this->_result(500, $t->getMessage());
         }
     }
 
