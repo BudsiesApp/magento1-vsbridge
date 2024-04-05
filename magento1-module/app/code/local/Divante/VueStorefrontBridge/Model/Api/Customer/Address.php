@@ -119,7 +119,7 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
 
         $addressDTO['region'] = [
             'region' => $addressDTO['region'],
-            'region_id' => $addressDTO['region_id']
+            'region_id' => $addressDTO['region_id'] ?? null
         ];
         unset($addressDTO['region_id']);
 
