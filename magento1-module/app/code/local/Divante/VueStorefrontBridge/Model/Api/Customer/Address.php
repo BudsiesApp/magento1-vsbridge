@@ -64,6 +64,7 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
             $address->setRegionId((int)$addressRegion->getId());
             $address->setRegion($addressRegion->getDefaultName());
         } else {
+            $address->setRegionId(null);
             $address->setRegion($addressData['region']['region']);
         }
 
