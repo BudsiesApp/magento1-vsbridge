@@ -54,14 +54,18 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
         $addressData['customer_id'] = $customer->getId();
         $address->addData($addressData);
 
-        $address->setRegion($addressData['region']['region']);
+        if (!empty($addressData['region']['region_id'])) {
+            $addressRegion = Mage::getModel('directory/region')->load($addressData['region']['region_id']);
 
-        $addressRegion = Mage::getModel('directory/region')
-            ->loadByCode($addressData['region']['region'], $addressData['country_id']);
-        
-        if ($addressRegion->getData()) {
+            if (!$addressRegion->getData()) {
+                throw new LogicException('Wrong address region_id was provided.');
+            }
+
             $address->setRegionId((int)$addressRegion->getId());
             $address->setRegion($addressRegion->getDefaultName());
+        } else {
+            $address->setRegionId(null);
+            $address->setRegion($addressData['region']['region']);
         }
 
         if (isset($addressData['default_billing']) && ($addressData['default_billing'] === true)) {
@@ -115,13 +119,11 @@ class Divante_VueStorefrontBridge_Model_Api_Customer_Address
         $addressDTO = $address->getData();
         $addressDTO['id'] = $addressDTO['entity_id'];
 
-        $region = null;
-        if (isset($addressDTO['region_id'])) {
-            $region = Mage::getModel('directory/region')->load($addressDTO['region_id'])->getCode();
-        } elseif (isset($addressDTO['region'])) {
-            $region = $addressDTO['region'];
-        }
-        $addressDTO['region'] = ['region' => $region];
+        $addressDTO['region'] = [
+            'region' => $addressDTO['region'],
+            'region_id' => $addressDTO['region_id'] ?? null
+        ];
+        unset($addressDTO['region_id']);
 
         $streetDTO = explode("\n", $addressDTO['street']);
         if (count($streetDTO) < 2) {
