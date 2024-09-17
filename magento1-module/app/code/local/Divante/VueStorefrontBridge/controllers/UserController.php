@@ -238,7 +238,7 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
             } else {
                 $customer = $this->_currentCustomer($this->getRequest());
                 if(!$customer) {
-                    return $this->_result(400, 'No customer found with the specified token');
+                    return $this->_result(401, 'No customer found with the specified token');
                 } else {
                     try {
                         $customer->setWebsiteId(Mage::app()->getStore()->getWebsiteId())->authenticate($customer->getEmail(), $request->currentPassword);
@@ -310,7 +310,7 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
         $customer = $this->_currentCustomer($this->getRequest());
 
         if (!$customer) {
-            return $this->_result(400, 'Customer not found');
+            return $this->_result(401, 'Customer not found');
         }
 
         $request = $this->getRequest();
@@ -425,7 +425,7 @@ class Divante_VueStorefrontBridge_UserController extends Divante_VueStorefrontBr
     {
         $customer = $this->_currentCustomer($this->getRequest());
         if(!$customer) {
-            return $this->_result(400, 'Customer not found');
+            return $this->_result(401, 'Customer not found');
         }
 
         $updatedShippingId = 0;

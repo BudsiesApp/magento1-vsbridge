@@ -53,7 +53,7 @@ class Divante_VueStorefrontBridge_WishlistController extends Divante_VueStorefro
         $customer = $this->currentCustomer($this->getRequest());
 
         if (!$customer || !$customer->getId()) {
-            return $this->_result(400, 'No customer found');
+            return $this->_result(401, 'No customer found');
         }
 
         $wishList = $this->wishListModel->getWishListByCustomer($customer);
